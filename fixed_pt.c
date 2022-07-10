@@ -5,7 +5,14 @@
 #define SHIFT_AMOUNT 8 // 2^8
 #define SHIFT_MASK ((1 << SHIFT_AMOUNT) - 1) // 65535 (all LSB set, all MSB clear)
 #define INT int16_t
-#define INT_x2 int32_t
+#define INT_PRODUCT int32_t
+
+INT multiply(INT num1, INT num2){
+  INT_PRODUCT product = num1 * num2;
+  product = product + (((1 << (SHIFT_AMOUNT - 1)) & product) << 1);
+  INT rounded_product = product >> SHIFT_AMOUNT;
+  return(rounded_product);
+}
 
 void swap_rows(INT* a[], int n, int row_i, int row_j){
   INT* temp_row = a[row_i];
@@ -49,7 +56,7 @@ int main(){
   }
 
   INT* ptr;
-  int numerator, denominator;
+  INT_PRODUCT numerator, denominator;
   INT value;
   for (i = 0; i < n; i++) {
     ptr = a[i];
@@ -63,7 +70,36 @@ int main(){
   }
   print_a(a, n);
 
-  swap_rows(a, n, 0, 1);
+  INT pivot_vector[n];
+  INT* pivot_ptr;
+  INT_PRODUCT divider_sf = 1 << (2 * SHIFT_AMOUNT);
+  INT reciprocal_pivot;
+
+  for (int norm = 0; norm < n; norm++) {
+    pivot_ptr = a[norm];
+    pivot_vector[norm] = *(pivot_ptr + norm);
+    *(pivot_ptr + norm) = 1 << SHIFT_AMOUNT;
+
+    //normalize pivot row
+    reciprocal_pivot = divider_sf / pivot_vector[norm];
+    for (i = 0; i < n; i++) {
+      *(pivot_ptr + i) = multiply(*(pivot_ptr + i), reciprocal_pivot);
+    }
+    for (int reduce = 0; reduce < n; reduce++) {
+      if (reduce != norm) {
+        ptr = a[reduce];
+        pivot_vector[reduce] = *(ptr + norm);
+        *(ptr + norm) = 0;
+
+        //reduce non-pivot rows
+        for (i = 0; i < n; i++) {
+          *(ptr + i) = *(ptr + i) - multiply(*(pivot_ptr + i), pivot_vector[reduce]);
+        }
+      }
+    }
+  }
+
+  //swap_rows(a, n, 0, 1);
   print_a(a, n);
 
   // fixed pt 1 = 1 << SHIFT_AMOUNT

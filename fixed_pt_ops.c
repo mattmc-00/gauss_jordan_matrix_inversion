@@ -2,15 +2,14 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-#define LOW_BITS 0xFF
 #define SHIFT_AMOUNT 8 // 2^8
-#define SHIFT_MASK ((1 << SHIFT_AMOUNT) - 1) // 65535 (all LSB set, all MSB clear)
+#define SHIFT_MASK ((1 << SHIFT_AMOUNT) - 1)
 #define INT int16_t
 #define INT_PRODUCT int32_t
 
 INT multiply(INT num1, INT num2){
   INT_PRODUCT product = num1 * num2;
-  product = product + ((LOW_BITS & product) << 1);
+  product = product + (((1 << (SHIFT_AMOUNT - 1)) & product) << 1);
   INT rounded_product = product >> SHIFT_AMOUNT;
   return(rounded_product);
 }
@@ -38,7 +37,11 @@ int main(){
   print_fixed_pt(num1, "num1: ", "\n");
   print_fixed_pt(num2, "num2: ", "\n");
 
-  INT product = multiply(num1, num2);
+  INT_PRODUCT divider_sf = 1 << (2 * SHIFT_AMOUNT);
+  INT num1_reciprocal = divider_sf / num1;
+  print_fixed_pt(num1_reciprocal, "num1_reciprocal: ", "\n");
+
+  INT product = multiply(num2, num1_reciprocal);
   print_fixed_pt(product, "product: ", "\n");
 
   return(0);

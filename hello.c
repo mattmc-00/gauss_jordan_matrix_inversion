@@ -105,5 +105,9 @@ int main() {
 
   display_matrix(a, n);
 
+  for (i = 0; i < n; i++) {
+    free(a[i]);
+  }
+
   return(0);
 }
