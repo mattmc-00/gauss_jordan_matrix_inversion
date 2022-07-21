@@ -43,7 +43,7 @@ void print_inv(FX_15_16* a[], int n, int indices[]){
     ptr = a[i];
     printf("\t");
     for (j = 0; j < n; j++) {
-      printf("%f, ", FX_TO_FL(*(ptr + indices[indices[j]])));
+      printf("%f, ", FX_TO_FL(*(ptr + indices[j])));
     }
     if(i == (n - 1)){
       printf("]\n");
