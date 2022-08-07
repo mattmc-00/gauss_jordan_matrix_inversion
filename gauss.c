@@ -64,13 +64,26 @@ int gauss(int n, FX_15_16* a[], int indices[]){
       printf("A is not invertible\n");
       return(0);
     }
-    *(pivot_ptr + norm) = one;
 
     /* normalize pivot row: divide row by pivot element */
+
+    /* Before optimization:
+    *(pivot_ptr + norm) = one;
     pivot_inv = FX_DIV(one, pivot_vector[norm]);
     for (j = 0; j < n; j++) {
       *(pivot_ptr + j) = FX_MUL(*(pivot_ptr + j), pivot_inv);
     }
+    */
+
+    /* Optimized loop: */
+    j = (norm + 1) % n;
+    pivot_inv = FX_DIV(one, pivot_vector[norm]);
+    while ((j - norm) != 0){
+      *(pivot_ptr + j) = FX_MUL(*(pivot_ptr + j), pivot_inv);
+      j = (j + 1) % n;
+    }
+    *(pivot_ptr + norm) = pivot_inv;
+
 
     /* iterate through all non-pivot rows */
     for (reduce = 0; reduce < n; reduce++) {
@@ -78,13 +91,26 @@ int gauss(int n, FX_15_16* a[], int indices[]){
         /* pivot_vector[reduce] <- reducing pivot element for current row */
         ptr = a[reduce];
         pivot_vector[reduce] = *(ptr + norm);
-        *(ptr + norm) = 0;
 
         /* reduce non-pivot rows */
+
+        /* Before optimization:
+        *(ptr + norm) = 0;
         for (i = 0; i < n; i++) {
           sub = FX_MUL(*(pivot_ptr + i), pivot_vector[reduce]);
           *(ptr + i) = FX_SUB(*(ptr + i), sub);
         }
+        */
+
+        /* Optimized loop: */
+        i = (norm + 1) % n;
+        while ((i - norm) != 0){
+          sub = FX_MUL(*(pivot_ptr + i), pivot_vector[reduce]);
+          *(ptr + i) = FX_SUB(*(ptr + i), sub);
+          i = (i + 1) % n;
+        }
+        sub = FX_MUL(*(pivot_ptr + norm), pivot_vector[reduce]);
+        *(ptr + norm) = FX_SUB(0, sub);
       }
     }
   }
