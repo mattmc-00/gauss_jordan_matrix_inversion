@@ -41,6 +41,14 @@ static inline int32_t fx_div(int32_t a, int32_t b){
   return(a);
 }
 
+/* Optimization: replaced calls to stdlib abs() with local abs_32() */
+static inline int32_t abs_32(int32_t num){
+  if (num < 0){
+    return(-num);
+  }
+  return(num);
+}
+
 /* Gauss-Jordan Elimination Algorithm */
 int gauss(int n, FX_15_16* a[], int indices[]){
   FX_15_16* ptr;
@@ -56,9 +64,10 @@ int gauss(int n, FX_15_16* a[], int indices[]){
   for (norm = 0; norm < n; norm++) {
     /* pivot: swap the row having largest element in current column with current pivot row */
     max_i = norm;
-    max = abs(*(a[norm] + norm));
+    /* Optimization: replaced calls to stdlib abs() with local abs_32() */
+    max = abs_32(*(a[norm] + norm));
     for(i = norm + 1; i < n; i++){
-      curr = abs(*(a[i] + norm));
+      curr = abs_32(*(a[i] + norm));
       if(curr > max){
         max_i = i;
         max = curr;
