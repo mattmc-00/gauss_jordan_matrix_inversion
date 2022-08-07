@@ -11,11 +11,12 @@ typedef int32_t FX_15_16;
 #define INT_TO_FX(a) (a<<16)
 #define FX_TO_INT(a) (int32_t)(a>>16)
 
+/* Optimization: Replace with inline functions
 #define FX_ADD(a,b) (a+b)
 #define FX_SUB(a,b) (a-b)
 #define FX_MUL(a,b) (int32_t)((((int64_t)a) * b) >> 16)
 #define FX_DIV(a,b) (int32_t)(((int64_t)a << 16) / ((int64_t)b))
-#define FX_REM(a,b) ((a%b))
+*/
 
 /* Function Prototypes */
 int gauss(int n, FX_15_16* a[], int indices[]);
@@ -23,6 +24,22 @@ int calculate_inverse(int* n_ptr, char file_name[]);
 int read_matrix_from_file(int n, int indices[n], FX_15_16* a[n], char file_name[]);
 int read_expected_output_from_file(int n, char file_name[]);
 int print_matrix(int n, int indices[], FX_15_16* a[], char* name);
+
+/* Optimization: Inline Functions */
+static inline int32_t fx_mul(int32_t a, int32_t b){
+  int64_t mul = (int64_t)a;
+  mul = mul * b;
+  a = (int32_t)(mul >> 16);
+  return(a);
+}
+
+static inline int32_t fx_div(int32_t a, int32_t b){
+  int64_t a_64 = (int64_t)a;
+  int64_t b_64 = (int64_t)b;
+  a_64 = a_64 << 16;
+  a = (int32_t)(a_64 / b_64);
+  return(a);
+}
 
 /* Gauss-Jordan Elimination Algorithm */
 int gauss(int n, FX_15_16* a[], int indices[]){
@@ -77,9 +94,9 @@ int gauss(int n, FX_15_16* a[], int indices[]){
 
     /* Optimized loop: */
     j = (norm + 1) % n;
-    pivot_inv = FX_DIV(one, pivot_vector[norm]);
+    pivot_inv = fx_div(one, pivot_vector[norm]);
     while ((j - norm) != 0){
-      *(pivot_ptr + j) = FX_MUL(*(pivot_ptr + j), pivot_inv);
+      *(pivot_ptr + j) = fx_mul(*(pivot_ptr + j), pivot_inv);
       j = (j + 1) % n;
     }
     *(pivot_ptr + norm) = pivot_inv;
@@ -105,12 +122,11 @@ int gauss(int n, FX_15_16* a[], int indices[]){
         /* Optimized loop: */
         i = (norm + 1) % n;
         while ((i - norm) != 0){
-          sub = FX_MUL(*(pivot_ptr + i), pivot_vector[reduce]);
-          *(ptr + i) = FX_SUB(*(ptr + i), sub);
+          sub = fx_mul(*(pivot_ptr + i), pivot_vector[reduce]);
+          *(ptr + i) = *(ptr + i) - sub;
           i = (i + 1) % n;
         }
-        sub = FX_MUL(*(pivot_ptr + norm), pivot_vector[reduce]);
-        *(ptr + norm) = FX_SUB(0, sub);
+        *(ptr + norm) = fx_mul(*(pivot_ptr + norm), -pivot_vector[reduce]);
       }
     }
   }

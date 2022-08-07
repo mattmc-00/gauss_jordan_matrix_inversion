@@ -20,10 +20,15 @@ typedef int32_t FX_15_16;
 int32_t fx_mul(int32_t A, int32_t B) {
   int64_t C = (int64_t)A;
   C = C * B;
-  if ((C >> 48) != 0) {
+  C = A * B;
+  if (A != 0 && C / A != B) {
+    printf("Overflow/Underflow detected in (A * B)\n");
+    exit(-1);
+  }
+  /*if ((C >> 48) != 0) {
       printf("Overflow/Underflow detected in (A * B)\n");
       exit(-1);
-  }
+  }*/
   A = (int32_t)(C >> 16);
   return(A);
 }
@@ -34,6 +39,7 @@ int32_t fx_add(int32_t A, int32_t B) {
       printf("Overflow/Underflow detected in (A + B)\n");
       exit(-1);
   }
+  return(C);
 }
 
 int main() {
