@@ -12,8 +12,8 @@ typedef int32_t FX_15_16;
 #define INT_TO_FX(a) (a<<16)
 #define FX_TO_INT(a) (int32_t)(a>>16)
 
-/* Optimization: Replace with inline functions
-#define FX_ADD(a,b) (a+b)
+/* Optimization: Replace with inline functions */
+/* #define FX_ADD(a,b) (a+b)
 #define FX_SUB(a,b) (a-b)
 #define FX_MUL(a,b) (int32_t)((((int64_t)a) * b) >> 16)
 #define FX_DIV(a,b) (int32_t)(((int64_t)a << 16) / ((int64_t)b))
@@ -70,7 +70,7 @@ void end_timer(clock_t start_time){
 /* Gauss-Jordan Elimination Algorithm */
 void gauss(int n, FX_15_16* a[], int indices[]){
   FX_15_16* ptr;
-  register int norm, reduce, i;
+  register int norm, reduce, i, j;
   int max_i;
 
   FX_15_16 pivot_vector[n];
@@ -118,13 +118,13 @@ void gauss(int n, FX_15_16* a[], int indices[]){
 
     /* normalize pivot row: divide row by pivot element */
 
-    /* Before optimization:
-    *(pivot_ptr + norm) = one;
+    /* Before optimization: */
+    /* *(pivot_ptr + norm) = one;
     pivot_inv = FX_DIV(one, pivot_vector[norm]);
     for (j = 0; j < n; j++) {
       *(pivot_ptr + j) = FX_MUL(*(pivot_ptr + j), pivot_inv);
-    }
-    */
+    } */
+    
 
     /* Time execution of normalization of a row */
     //start_time = clock();
@@ -153,13 +153,13 @@ void gauss(int n, FX_15_16* a[], int indices[]){
 
         /* reduce non-pivot rows */
 
-        /* Before optimization:
-        *(ptr + norm) = 0;
+        /* Before optimization: */
+        /* *(ptr + norm) = 0;
         for (i = 0; i < n; i++) {
           sub = FX_MUL(*(pivot_ptr + i), pivot_vector[reduce]);
           *(ptr + i) = FX_SUB(*(ptr + i), sub);
-        }
-        */
+        } */
+        
 
         /* Time execution of reduction of a row */
         //start_time = clock();
@@ -315,7 +315,7 @@ void print_matrix(int n, int indices[], FX_15_16* a[], char* name){
 /* Application logic */
 void main() {
   char action;
-  printf("Select action:\n(f) = input matrix from file; (t) = run test suite; (0, 1) = run test from testbench\n");
+  printf("Select action:\n(f) = input matrix from file; (t) = run test suite; (0, 1, 2, 3) = run test from testbench\n");
   scanf("%c", &action);
 
   int n;
@@ -368,7 +368,15 @@ void main() {
     /* action 2: run testbench matrix 2 */
     char file_name[50] = "input/n100_ill.txt";
     n = 100;
-    for (int k = 0; k < 1; k++){
+    for (int k = 0; k < 30; k++){
+      calculate_inverse_testbench(n, file_name);
+    }
+  }
+  else if (action == '3'){
+    /* action 3: run testbench matrix 3 */
+    char file_name[50] = "input/n100_well.txt";
+    n = 100;
+    for (int k = 0; k < 30; k++){
       calculate_inverse_testbench(n, file_name);
     }
   }
