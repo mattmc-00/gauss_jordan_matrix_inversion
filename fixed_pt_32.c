@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <limits.h>
+#include <time.h>
 
 typedef int32_t FX_15_16;
 
@@ -57,6 +58,9 @@ int main(){
   }
   printf("]\n");
   printf("\n*******************************\n\n");
+  
+  /* start timer */
+  clock_t begin = clock();
 
   FX_15_16 pivot_vector[n];
   FX_15_16* pivot_ptr;
@@ -112,6 +116,11 @@ int main(){
       }
     }
   }
+  
+  /* end timer */
+  clock_t end = clock();
+  double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+  printf("fun() took %f seconds to execute \n", time_spent);
 
   printf("\n*******************************\n\n");
 

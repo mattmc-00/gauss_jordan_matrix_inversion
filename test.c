@@ -1,50 +1,37 @@
 #include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <string.h>
-#include <limits.h>
-
-typedef int32_t FX_15_16;
-
-#define FL_TO_FX(a) (int32_t)(a*65536.0)
-#define FX_TO_FL(a) (float)(a/65536.0)
-#define INT_TO_FX(a) (a<<16)
-#define FX_TO_INT(a) (int32_t)(a>>16)
-
-#define FX_ADD(a,b) (a+b)
-#define FX_SUB(a,b) (a-b)
-#define FX_MUL(a,b) (int32_t)((((int64_t)a) * b) >> 16)
-#define FX_DIV(a,b) (int32_t)(((int64_t)a << 16) / ((int64_t)b))
-#define FX_REM(a,b) ((a%b))
-
-void print1(int a[], int n){
-  int i, j;
-  printf("print1: [\n");
-  for (i = 0; i < n; i++){
-    printf("\t%d (%d)", a[i], i);
-  }
-  printf("\n]\n");
+#include <time.h>
+ 
+// A function that terminates when enter key is pressed
+void fun()
+{
+    printf("fun() starts \n");
+    printf("Press enter to stop fun \n");
+    while(1)
+    {
+        if (getchar())
+            break;
+    }
+    printf("fun() ends \n");
 }
+ 
+// The main program calls fun() and measures time taken by fun()
+int main()
+{
+    // Calculate the time taken by fun()
+    /*clock_t t;
+    t = clock();
+    fun();
+    t = clock() - t;
+    double time_taken = ((double)t)/CLOCKS_PER_SEC; // in seconds*/
+    
+    clock_t begin = clock();
 
-void print2(int a[], int n){
-  int i, j;
-  j = 0;
-  printf("print2: [\n");
-  i = j + 1;
-  while (i - j != 0){
-    printf("\t%d (%d)", a[i], i);
-    i = (i + 1) % n;
-  }
-  printf("\t%d (%d)", a[j], j);
-  printf("\n]\n");
-}
+    /* here, do your time-consuming job */
+    fun();
 
-/* Application logic */
-int main() {
-  int i, j;
-  int n = 6;
-  int a[] = {1, 2, 5, 2, 7, 8};
-  print1(a, n);
-  print2(a, n);
-  return(0);
+    clock_t end = clock();
+    double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+ 
+    printf("fun() took %f seconds to execute \n", time_spent);
+    return 0;
 }
