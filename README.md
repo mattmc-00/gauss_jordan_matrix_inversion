@@ -23,7 +23,8 @@ Select action:
 
 To select an action, the user must press either f, 0, 1, 2, or 3 followed by the enter key.
 For all of the testbench options, the program will be run on a testbench matrix 10 times, 
-printing the execution time of each iteration to stdout.
+printing the execution time of each iteration to stdout. The testbench contains 4 matrices:
+
 0	:	Randomly Generated Matrix of size 100x100
 
 1	:	Randomly Generated Matrix of size 250x250
