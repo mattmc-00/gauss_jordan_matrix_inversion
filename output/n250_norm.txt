@@ -1,0 +1,2 @@
+Select action:
+(f) = input matrix from file; (t) = run test suite; (0, 1) = run test from testbench

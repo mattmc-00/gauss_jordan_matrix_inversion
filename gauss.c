@@ -12,8 +12,10 @@ typedef int32_t FX_15_16;
 #define INT_TO_FX(a) (a<<16)
 #define FX_TO_INT(a) (int32_t)(a>>16)
 
-/* Optimization: Replace with inline functions */
-/* #define FX_ADD(a,b) (a+b)
+/*Optimization: Replace macros with inline functions */
+
+/* 
+#define FX_ADD(a,b) (a+b)
 #define FX_SUB(a,b) (a-b)
 #define FX_MUL(a,b) (int32_t)((((int64_t)a) * b) >> 16)
 #define FX_DIV(a,b) (int32_t)(((int64_t)a << 16) / ((int64_t)b))
@@ -21,12 +23,12 @@ typedef int32_t FX_15_16;
 
 /* Function Prototypes */
 void gauss(int n, FX_15_16* a[], int indices[]);
-void calculate_inverse(int* n_ptr, char file_name[]);
+void calculate_inverse_testbench(int n, char file_name[]);
+void calculate_inverse_filein(int n, char file_name[]);
 void read_matrix_from_file(int n, int indices[n], FX_15_16* a[n], char file_name[]);
-void read_expected_output_from_file(int n, char file_name[]);
 void print_matrix(int n, int indices[], FX_15_16* a[], char* name);
 
-/* Optimization: Inline Functions */
+/* Optimization: Replace macros with inline functions */
 static inline int32_t fx_mul(int32_t a, int32_t b){
   int64_t mul = (int64_t)a;
   mul = mul * b;
@@ -55,16 +57,15 @@ static inline int32_t abs_32(int32_t num){
     start timer:
       clock_t start_time = clock();
 
-    run block of code...
+    run block of code being timed...
     end timer:
-      end_timer(start_time, string to prepend in printf);
+      end_timer(start_time);
   
 */
 void end_timer(clock_t start_time){
   clock_t end_time = clock();
   double time_spent = (double)(end_time - start_time) / CLOCKS_PER_SEC;
-  //printf("%s took %f seconds to execute \n", epilogue, time_spent);
-  printf("%f\n", time_spent);
+  printf("%f seconds to execute\n", time_spent);
 }
 
 /* Gauss-Jordan Elimination Algorithm */
@@ -82,9 +83,9 @@ void gauss(int n, FX_15_16* a[], int indices[]){
 
   for (norm = 0; norm < n; norm++) {
     /* Time execution of pivot row selection */
-    //start_time = clock();
+    /* start_time = clock(); */
     
-    /* pivot: swap the row having largest element in current column with current pivot row */
+    /* pivot selection step: swap the row having largest element in current column with current pivot row */
     max_i = norm;
     /* Optimization: replaced calls to stdlib abs() with local abs_32() */
     max = abs_32(*(a[norm] + norm));
@@ -96,7 +97,7 @@ void gauss(int n, FX_15_16* a[], int indices[]){
       }
     }
     
-    /* if the max element is distinct from current row's element, perform the swap */
+    /* perform pivot: if the max element is distinct from current row's element, perform the swap */
     if(norm != max_i){
       swap_row = a[norm];
       i = indices[norm];
@@ -106,9 +107,9 @@ void gauss(int n, FX_15_16* a[], int indices[]){
       indices[max_i] = i;
     }
     
-    //end_timer(start_time);
+    /* End timing of pivot row selection */
+    /* end_timer(start_time); */
 
-    /* pivot_vector[norm] <- normalizing pivot element for this iteration */
     pivot_ptr = a[norm];
     pivot_vector[norm] = *(pivot_ptr + norm);
     if (pivot_vector[norm] == 0) {
@@ -116,20 +117,23 @@ void gauss(int n, FX_15_16* a[], int indices[]){
       exit(-1);
     }
 
-    /* normalize pivot row: divide row by pivot element */
+    /* normalizing step: divide pivot row by pivot element */
 
-    /* Before optimization: */
-    /* *(pivot_ptr + norm) = one;
+    /* Before loop unrolling: */
+    
+    /*
+    *(pivot_ptr + norm) = one;
     pivot_inv = FX_DIV(one, pivot_vector[norm]);
     for (j = 0; j < n; j++) {
       *(pivot_ptr + j) = FX_MUL(*(pivot_ptr + j), pivot_inv);
-    } */
+    }
+    */
     
 
-    /* Time execution of normalization of a row */
-    //start_time = clock();
+    /* Time execution of normalization of pivot row */
+    /* start_time = clock(); */
     
-    /* Optimized loop: */
+    /* After loop unrolling: */
     i = (norm + 1) % n;
     pivot_inv = fx_div(one, pivot_vector[norm]);
     while ((i - norm) != 0){
@@ -138,33 +142,32 @@ void gauss(int n, FX_15_16* a[], int indices[]){
     }
     *(pivot_ptr + norm) = pivot_inv;
     
-    //end_timer(start_time);
-
-
-    /* Time execution of n row reductions */
-    //start_time = clock();
+    /* End timing of normalization */
+    /* end_timer(start_time); */
     
     /* iterate through all non-pivot rows */
     for (reduce = 0; reduce < n; reduce++) {
       if (reduce != norm) {
-        /* pivot_vector[reduce] <- reducing pivot element for current row */
         ptr = a[reduce];
         pivot_vector[reduce] = *(ptr + norm);
 
-        /* reduce non-pivot rows */
+        /* reduction step: reduce each non-pivot row */
 
-        /* Before optimization: */
-        /* *(ptr + norm) = 0;
+        /* Before loop unrolling: */
+        
+        /* 
+        *(ptr + norm) = 0;
         for (i = 0; i < n; i++) {
           sub = FX_MUL(*(pivot_ptr + i), pivot_vector[reduce]);
           *(ptr + i) = FX_SUB(*(ptr + i), sub);
-        } */
+        }
+        */
         
 
         /* Time execution of reduction of a row */
-        //start_time = clock();
+        /* start_time = clock(); */
         
-        /* Optimized loop: */
+        /* After loop unrolling: */
         i = (norm + 1) % n;
         while ((i - norm) != 0){
           sub = fx_mul(*(pivot_ptr + i), pivot_vector[reduce]);
@@ -173,22 +176,15 @@ void gauss(int n, FX_15_16* a[], int indices[]){
         }
         *(ptr + norm) = fx_mul(*(pivot_ptr + norm), -pivot_vector[reduce]);
         
-        //end_timer(start_time);
+        /* End timing of reduction */
+        /* end_timer(start_time); */
       }
     }
-    
-    //end_timer(start_time);
   }
 }
 
-/* Function wrapper for Gauss-Jordan algorithm function */
-void calculate_inverse(int* n_ptr, char file_name[]){
-  /* Take n as input from user to avoid extra accesses to input file */
-  int n;
-  printf("Input order of matrix:\n");
-  scanf("%d", &n);
-  *n_ptr = n;
-
+/* Function wrappers for Gauss-Jordan algorithm function */
+void calculate_inverse_testbench(int n, char file_name[]){
   FX_15_16* a[n];
   int indices[n];
   int i;
@@ -215,8 +211,7 @@ void calculate_inverse(int* n_ptr, char file_name[]){
   }
 }
 
-void calculate_inverse_testbench(int n, char file_name[]){
-  /* Take n as input from user to avoid extra accesses to input file */
+void calculate_inverse_filein(int n, char file_name[]){
   FX_15_16* a[n];
   int indices[n];
   int i;
@@ -225,7 +220,7 @@ void calculate_inverse_testbench(int n, char file_name[]){
     indices[i] = i;
   }
   read_matrix_from_file(n, indices, a, file_name);
-  /* print_matrix(n, indices, a, "A"); */
+  print_matrix(n, indices, a, "A");
   
   /* start timer */
   clock_t start_time = clock();
@@ -236,7 +231,7 @@ void calculate_inverse_testbench(int n, char file_name[]){
   /* end timer */
   end_timer(start_time);
   
-  /* print_matrix(n, indices, a, "A_inv"); */
+  print_matrix(n, indices, a, "A_inv");
   
   for (i = 0; i < n; i++) {
     free(a[i]);
@@ -266,23 +261,6 @@ void read_matrix_from_file(int n, int indices[n], FX_15_16* a[n], char file_name
     }
   }
   fclose(fp);
-}
-
-void read_expected_output_from_file(int n, char file_name[]){
-  int static_indices[n];
-  int i;
-  FX_15_16* a_exp[n];
-  int indices[n];
-  for (i = 0; i < n; i++) {
-    a_exp[i] = malloc(sizeof(FX_15_16) * n);
-    static_indices[i] = i;
-  }
-
-  read_matrix_from_file(n, indices, a_exp, file_name);
-  print_matrix(n, static_indices, a_exp, "A_exp");
-  for (i = 0; i < n; i++) {
-    free(a_exp[i]);
-  }
 }
 
 void print_matrix(int n, int indices[], FX_15_16* a[], char* name){
@@ -315,44 +293,15 @@ void print_matrix(int n, int indices[], FX_15_16* a[], char* name){
 /* Application logic */
 void main() {
   char action;
-  printf("Select action:\n(f) = input matrix from file; (t) = run test suite; (0, 1, 2, 3) = run test from testbench\n");
+  printf("Select action:\n(f) = run on local input file\n(0, 1, 2, 3) = run test i from testbench 10 times\n");
   scanf("%c", &action);
 
   int n;
-  int* n_ptr;
-  n_ptr = &n;
-  if (action == 'f'){
-    /* action f: get input from local file */
-    char file_name[50];
-    printf("Input file name:\n");
-    scanf("%s", &file_name);
-    calculate_inverse(n_ptr, file_name);
-  }
-  else if (action == 't'){
-    /* action t: run hard-coded test suite */
-    int num_tests = 3;
-    char* inputs[3] = {
-      "input/n4_m1.txt",
-      "input/n5_m1.txt",
-      "input/n5_m2.txt"
-    };
-    char* outputs[3] = {
-      "output/n4_m1.txt",
-      "output/n5_m1.txt",
-      "output/n5_m2.txt"
-    };
-
-    for (int i = 0; i < num_tests; i++){
-      printf("Test %d Reading from %s\n", i + 1, inputs[i]);
-      calculate_inverse(n_ptr, inputs[i]);
-      read_expected_output_from_file(n, outputs[i]);
-    }
-  }
-  else if (action == '0'){
+  if (action == '0'){
     /* action 0: run testbench matrix 0 */
     char file_name[50] = "input/n100_1.txt";
     n = 100;
-    for (int k = 0; k < 1; k++){
+    for (int k = 0; k < 10; k++){
       calculate_inverse_testbench(n, file_name);
     }
   }
@@ -360,7 +309,7 @@ void main() {
     /* action 1: run testbench matrix 1 */
     char file_name[50] = "input/n250_1.txt";
     n = 250;
-    for (int k = 0; k < 1; k++){
+    for (int k = 0; k < 10; k++){
       calculate_inverse_testbench(n, file_name);
     }
   }
@@ -368,7 +317,7 @@ void main() {
     /* action 2: run testbench matrix 2 */
     char file_name[50] = "input/n100_ill.txt";
     n = 100;
-    for (int k = 0; k < 30; k++){
+    for (int k = 0; k < 10; k++){
       calculate_inverse_testbench(n, file_name);
     }
   }
@@ -376,8 +325,17 @@ void main() {
     /* action 3: run testbench matrix 3 */
     char file_name[50] = "input/n100_well.txt";
     n = 100;
-    for (int k = 0; k < 30; k++){
+    for (int k = 0; k < 10; k++){
       calculate_inverse_testbench(n, file_name);
     }
+  }
+  else if (action == 'f'){
+    /* action f: run on local input file */
+    char file_name[50];
+    printf("Input file name:\n");
+    scanf("%s", &file_name);
+    printf("Next input size of input matrix:\n");
+    scanf("%d", &n);
+    calculate_inverse_filein(n, file_name);
   }
 }

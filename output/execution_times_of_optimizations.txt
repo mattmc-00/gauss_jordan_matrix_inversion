@@ -1,0 +1,54 @@
+After optimizations:
+
+Execution times on ill-conditioned matrix:
+0.133835
+0.133833
+0.133757
+0.133817
+0.133832
+0.133810
+0.133790
+0.133747
+0.133834
+0.133815
+0.133702
+
+Execution times on well-conditioned matrix:
+0.133819
+0.133878
+0.136793
+0.133853
+0.133780
+0.133892
+0.133711
+0.133801
+0.133888
+0.133853
+0.133874
+
+Before optimizations:
+
+Execution times on ill-conditioned matrix:
+0.150482
+0.150588
+0.150487
+0.150598
+0.150481
+0.154403
+0.150287
+0.150451
+0.150354
+0.150516
+
+Execution times on well-conditioned matrix:
+0.100005
+0.100035
+0.100065
+0.100031
+0.100316
+0.100019
+0.100002
+0.099960
+0.099945
+0.100130
+
