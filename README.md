@@ -25,16 +25,21 @@ To select an action, the user must press either f, 0, 1, 2, or 3 followed by the
 For all of the testbench options, the program will be run on a testbench matrix 10 times, 
 printing the execution time of each iteration to stdout.
 0	:	Randomly Generated Matrix of size 100x100
+
 1	:	Randomly Generated Matrix of size 250x250
+
 2	:	Randomly Generated Ill-conditioned Matrix of size 100x100
+
 3	:	Randomly Generated Well-conditioned Matrix of size 100x100
 
 For the local input file option, the program will run on the specified input matrix once, first printing
 the input matrix, then the execution time for finding the inverse, and finally the inverse itself.
 
+
 For example: to run the program out of the root directory on input/n3_a.txt, a matrix stored in the input directory,
 type its filepath after choosing the (f) action:
 input/n3_a.txt
+
 
 The program also takes user input for the size of the input function, so for the above example where the
 input matrix is of size 3x3, the user will input the number 3.
