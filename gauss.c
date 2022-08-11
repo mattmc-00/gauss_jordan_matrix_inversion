@@ -31,8 +31,11 @@ void print_matrix(int n, int indices[], FX_15_16* a[], char* name);
 /* Optimization: Replace macros with inline functions */
 static inline int32_t fx_mul(int32_t a, int32_t b){
   int64_t mul = (int64_t)a;
+  int32_t von_n;
   mul = mul * b;
-  a = (int32_t)(mul >> 16);
+  /* Added Von Neumann rounding to reduce error */
+  von_n = (mul && 0xFFFF ? 1 : 0);
+  a = (int32_t)(mul >> 16) + von_n;
   return(a);
 }
 
@@ -46,9 +49,15 @@ static inline int32_t fx_div(int32_t a, int32_t b){
 
 /* Optimization: replaced calls to stdlib abs() with local abs_32() */
 static inline int32_t abs_32(int32_t num){
+  /* Optimization: replace conditional with ternary operator */
+  /*
   if (num < 0){
     return(-num);
   }
+  return(num);
+  */
+  
+  num = (num < 0 ? -num : num);
   return(num);
 }
 
@@ -71,7 +80,7 @@ void end_timer(clock_t start_time){
 /* Gauss-Jordan Elimination Algorithm */
 void gauss(int n, FX_15_16* a[], int indices[]){
   FX_15_16* ptr;
-  register int norm, reduce, i, j;
+  register int norm, reduce, i;
   int max_i;
 
   FX_15_16 pivot_vector[n];
